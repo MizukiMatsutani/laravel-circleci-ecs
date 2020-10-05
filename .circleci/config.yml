@@ -30,9 +30,6 @@ jobs:
       - run:
           name: Docker php extensions install
           command: sudo docker-php-ext-install pdo_mysql mbstring zip bcmath gd
-      - run:
-          name: Change directory to src
-          command: cd src/
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "src/composer.lock" }}
@@ -40,6 +37,7 @@ jobs:
       - run:
           name: Install PHP libraries
           command: composer install -n --prefer-dist
+          working_directory: src/
       - save_cache:
           paths:
             - ./vendor
@@ -47,6 +45,8 @@ jobs:
       - run:
           name: DB Migration
           command: php artisan migrate && php artisan db:seed
+          working_directory: src/
       - run:
           name: Run PHPUnit
           command: php artisan test
+          working_directory: src/
