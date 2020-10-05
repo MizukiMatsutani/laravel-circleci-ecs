@@ -1,0 +1,63 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/php:7.3-node-browsers
+      - image: circleci/mysql:5.7
+    environment:
+      TZ: Asia/Tokyo
+      # Laravel environment
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_DATABASE: ci_database
+      DB_USERNAME: ci_db_user
+      DB_PASSWORD: ci_db_user_pass
+      # mysql enviroment
+      MYSQL_DATABASE: ci_database
+      MYSQL_USER: ci_db_user
+      MYSQL_PASSWORD: ci_db_user_pass
+      MYSQL_ROOT_PASSWORD: secret
+    working_directory: ~/laravel_circleci_ecs
+    steps:
+      - checkout # ソースをgithubからworkdirにcheckoutする
+      - run:
+          name: Update apt-get
+          command: sudo apt-get update
+      - run:
+          name: Libraries get
+          command: sudo apt-get libicu-dev \
+            libonig-dev \
+            libzip-dev \
+            unzip \
+            locales \
+            libjpeg-dev \
+            libfreetype6-dev \
+            libjpeg62-turbo-dev \
+            libpng-dev \
+            g++ \
+            gcc
+      - run:
+          name: Docker php extensions install
+          command: sudo docker-php-ext-install pdo_mysql \
+            mbstring \
+            zip \
+            bcmath \
+            gd
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "composer.lock" }}
+            - v1-dependencies-
+      - run:
+          name: Install PHP libraries
+          command: composer install -n --prefer-dist
+      - save_cache:
+          paths:
+            - ./vendor
+          key: v1-dependencies-{{ checksum "composer.lock" }}
+      - run:
+          name: DB Migration
+          command: php artisan migrate && php artisan db:seed
+      - run:
+          name: Run PHPUnit
+          command: php artisan test
