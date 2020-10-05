@@ -26,7 +26,8 @@ jobs:
           command: sudo apt-get update
       - run:
           name: Libraries get
-          command: sudo apt-get -y install libicu-dev \
+          command: sudo apt-get -y install software-properties-common \
+            libicu-dev \
             libonig-dev \
             libzip-dev \
             unzip \
