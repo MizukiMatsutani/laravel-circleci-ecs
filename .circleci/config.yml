@@ -30,6 +30,9 @@ jobs:
       - run:
           name: Docker php extensions install
           command: sudo docker-php-ext-install pdo_mysql mbstring zip bcmath gd
+      - run:
+          name: Change directory to src
+          command: cd src/
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "composer.lock" }}
