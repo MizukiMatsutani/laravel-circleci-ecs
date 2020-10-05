@@ -27,8 +27,7 @@ jobs:
       - run:
           name: Libraries get
           command:
-            sudo apt-get -y install software-properties-common
-            # libicu-dev \
+            sudo apt-get -y install software-properties-common libicu-dev
             # libonig-dev \
             # libzip-dev \
             # unzip \
@@ -41,11 +40,7 @@ jobs:
             # gcc
       - run:
           name: Docker php extensions install
-          command: sudo docker-php-ext-install pdo_mysql \
-            mbstring \
-            zip \
-            bcmath \
-            gd
+          command: sudo docker-php-ext-install pdo_mysql mbstring zip bcmath gd
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "composer.lock" }}
