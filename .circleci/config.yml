@@ -4,13 +4,6 @@ jobs:
     docker:
       - image: circleci/php:7.3-node-browsers
       - image: circleci/mysql:5.7
-    environment:
-      TZ: Asia/Tokyo
-      # mysql enviroment
-      MYSQL_DATABASE: ci_database
-      MYSQL_USER: ci_db_user
-      MYSQL_PASSWORD: ci_db_user_pass
-      MYSQL_ROOT_PASSWORD: secret
     working_directory: ~/laravel_circleci_ecs
     steps:
       - checkout # ソースをgithubからworkdirにcheckoutする
