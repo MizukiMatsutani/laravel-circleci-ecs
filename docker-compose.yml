@@ -30,7 +30,7 @@ services:
       - 8080:80
     volumes:
       - php-fpm-socket:/var/run/php-fpm:delegated
-      - ./src:/work:delegated
+      - ./src/public:/work/public:delegated
     environment:
       TZ: Asia/Tokyo
   db:
