@@ -1,3 +1,4 @@
+include .env
 default:
 	@echo Please specify target name!
 up:
@@ -63,26 +64,14 @@ cache:
 	@make optimize
 cache-clear:
 	@make optimize-clear
-# yarn:
-# 	docker-compose exec web yarn
-# yarn-dev:
-# 	docker-compose exec web yarn run dev
-# yarn-generate:
-# 	docker-compose exec web yarn run generate
-# yarn-watch:
-# 	docker-compose exec web yarn run watch
-# yarn-watch-poll:
-# 	docker-compose exec web yarn run watch-poll
-# yarn-hot:
-# 	docker-compose exec web yarn run hot
-# db:
-# 	docker-compose exec db bash
-# mysql:
-# 	docker-compose exec db bash -c 'mysql -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
-# redis:
-# 	docker-compose exec redis redis-cli
-# ide-helper:
-# 	docker-compose exec app php artisan clear-compiled
-# 	docker-compose exec app php artisan ide-helper:generate
-# 	docker-compose exec app php artisan ide-helper:meta
-# 	docker-compose exec app php artisan ide-helper:models --nowrite
+ecr-deploy-app:
+	docker-compose build app
+	docker tag ${COMPOSE_PROJECT_NAME}_app:latest ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest
+	docker push ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest
+ecr-deploy-web:
+	docker-compose build web
+	docker tag ${COMPOSE_PROJECT_NAME}_web:latest ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest
+	docker push ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest
+ecr-deploy:
+	@make ecr-deploy-app
+	@make ecr-deploy-web

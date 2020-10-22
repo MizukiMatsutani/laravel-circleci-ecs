@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/php:7.3-node-browsers
       - image: circleci/mysql:5.7
@@ -59,3 +59,55 @@ jobs:
           name: Run PHPUnit
           command: php artisan test
           working_directory: src/
+
+  bulid_image_and_push:
+    docker:
+      - image: circleci/php:7.3.9-fpm
+    working_directory: ~/laravel_circleci_ecs
+    steps:
+      - checkout
+      - run:
+          name: setup Laravel # envをproduction用のものに変更&権限設定 ln -s .env.production .env
+          command: |
+            sudo chmod -R 777 storage bootstrap/cache
+      - run:
+          name: composer install
+          command: composer install -n --prefer-dist
+      - run: # configファイルをキャッシュ
+          name: create config cache
+          command: php artisan config:cache
+      - run:
+          name: build container # PHPコンテナをビルド
+          command: |
+            docker build --no-cache -t sample-php-fpm:latest --build-arg TZ=${TZ} -f ./docker/php/Dockerfile .
+            docker build --no-cache -t sample-nginx:latest --build-arg TZ=${TZ} -f ./docker/web/Dockerfile .
+      - run:
+          name: install aws cli # コマンドラインからAWSを操作するためにaws-cliをインストール
+          command: |
+            curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+            sudo python get-pip.py
+            sudo pip install awscli
+      - run:
+          name: push docker image # ECRにコンテナイメージをpush
+          command: |
+            aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin ${AWS_ECR_ACCOUNT_URL}
+            docker push ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest
+            docker push ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
+      - bulid_image_and_push:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+      # - deploy:
+      #     requires:
+      #       - build_image
+      #     filters:
+      #       branches:
+      #         only: master
