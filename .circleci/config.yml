@@ -66,6 +66,7 @@ jobs:
     working_directory: ~/laravel_circleci_ecs
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: setup Laravel # envをproduction用のものに変更&権限設定 ln -s .env.production .env
           command: |
