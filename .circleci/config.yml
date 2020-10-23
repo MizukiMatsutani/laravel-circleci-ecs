@@ -80,6 +80,9 @@ jobs:
           name: create config cache
           command: php artisan config:cache
           working_directory: src/
+      - run: # test
+          name: pwd
+          command: pwd
       - run:
           name: build container # PHPコンテナをビルド
           command: |
