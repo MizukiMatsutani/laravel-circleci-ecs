@@ -1,117 +1,231 @@
-version: 2
-jobs:
-  test:
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@6.13.0
+  # aws-ecs: circleci/aws-ecs@1.3.0
+  # aws-cli: circleci/aws-cli@0.1.19 # todo
+
+executors:
+  # deployer:
+  #   working_directory: ~/laravel_circleci_ecs
+  #   docker:
+  #     - image: circleci/php:7.3.11-stretch-node
+  #   parameters:
+  #     region:
+  #       type: enum
+  #       enum: [ "us-east-1", "ap-northeast-1" ]
+  #       default: "us-east-1"
+  #   environment:
+  #     AWS_REGION: <<parameters.region>>
+  #     AWS_ECR_ACCOUNT_URL: 680368052587.dkr.ecr.<<parameters.region>>.amazonaws.com
+  testing:
+    working_directory: ~/laravel_circleci_ecs
     docker:
       - image: circleci/php:7.3-node-browsers
+        environment:
+          LOCALE: ja
+          LANG: ja_JP.UTF-8
       - image: circleci/mysql:5.7
-    working_directory: ~/laravel_circleci_ecs
+        environment:
+          LOCALE: ja
+          LANG: ja_JP.UTF-8
+
+command:
+  install_php_dependencies:
     steps:
-      - checkout # ソースをgithubからworkdirにcheckoutする
       - run:
-          name: Update apt-get
-          command: sudo apt-get update
-      - run:
-          name: Libraries get
-          command: >-
-            sudo apt-get -y install
-            software-properties-common
-            libicu-dev
-            libonig-dev
-            libzip-dev
-            unzip
-            locales
-            libjpeg-dev
-            libfreetype6-dev
-            libjpeg62-turbo-dev
-            libpng-dev
-            g++
-            gcc
-      - run:
-          name: Docker php extensions install
-          command: >-
-            sudo docker-php-ext-install
-            pdo_mysql
-            mbstring
-            zip
-            bcmath
-            gd
+          name: Install PHP dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get -y install software-properties-common \
+              libicu-dev \
+              libonig-dev \
+              libzip-dev \
+              unzip \
+              locales \
+              libjpeg-dev \
+              libfreetype6-dev \
+              libjpeg62-turbo-dev \
+              libpng-dev \
+              g++ \
+              gcc
+            sudo docker-php-ext-configure gd --with-png-dir=/usr/include --with-jpeg-dir=/usr/include
+            sudo docker-php-ext-install -j$(nproc) \
+              intl \
+              pdo_mysql \
+              mbstring \
+              zip \
+              bcmath \
+              gd
+            sudo composer self-update
+
+  restore_dependencies_cache:
+    steps:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "src/composer.lock" }}
             - v1-dependencies-
+      - restore_cache:
+          keys:
+            - node-v1-{{ checksum "src/package-lock.json" }}
+            - node-v1-
+
+  install_dependencies:
+    steps:
       - run:
-          name: Install PHP libraries
-          command: composer install -n --prefer-dist
+          name: Install php dependencies
           working_directory: src/
+          command: |
+            composer install -n --prefer-dist --ignore-platform-reqs
+      - run:
+          name: Install nodejs dependencies
+          working_directory: src/
+          command: |
+            npm install
+
+  save_dependencies_cache:
+    steps:
       - save_cache:
+          key: composer-v1-{{ checksum "src/composer.lock" }}
           paths:
-            - ./vendor
-          key: v1-dependencies-{{ checksum "src/composer.lock" }}
+            - src/vendor
+      - save_cache:
+          key: node-v1-{{ checksum "src/package-lock.json" }}
+          paths:
+            - src/node_modules
+
+  prepare_env:
+    steps:
       - run:
-          name: Create Environment file
-          command: mv .env.testing .env && php artisan key:generate
+          name: Copy env
           working_directory: src/
+          command: |
+            mv .env.testing .env
+            php artisan key:generate
+      # - run: # プライベートリポジトリの場合必要
+      #     name: Prepare github oauth
+      #     working_directory: src/
+      #     command: |
+      #       composer config -g github-oauth.github.com ${GITHUB_ACCESS_TOKEN}
+
+  run_linter:
+    steps:
+      # - run: # フロント開発する場合は必要
+      #     name: Run ESLint
+      #     working_directory: src/
+      #     command: npm run lint
+      - run:
+          name: Run Prettier for PHP
+          working_directory: src/
+          command: ./node_modules/.bin/prettier --check "{app,config,database/factories,database/seeds,routes,tests}/**/*.php"
+      - run:
+          name: Run Phpstan
+          working_directory: src/
+          command: ./vendor/bin/phpstan analyse --memory-limit=512M
+
+  setup_database:
+    steps:
       - run:
           name: DB Migration
-          command: php artisan migrate && php artisan db:seed
-          working_directory: src/
-      - run:
-          name: Run PHPUnit
-          command: php artisan test
+          command: |
+            php artisan migrate
+            php artisan db:seed
           working_directory: src/
 
-  bulid_image_and_push:
-    docker:
-      - image: circleci/php:7.3.9-fpm
-    working_directory: ~/laravel_circleci_ecs
+  run_unit_test:
+    steps:
+      - run:
+          name: Run test
+          working_directory: src
+          command: |
+            phpdbg -qrr vendor/bin/phpunit --log-junit ~/phpunit/junit.xml --coverage-html ~/phpunit/coverage-report
+      - store_test_results:
+          path: ~/phpunit
+      - store_artifacts:
+          path: ~/phpunit
+
+jobs:
+  test:
+    executor: testing
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: setup Laravel # envをproduction用のものに変更&権限設定 ln -s .env.production .env
-          command: |
-            sudo chmod -R 777 storage bootstrap/cache
-          working_directory: src/
-      - run:
-          name: composer install
-          command: composer install -n --prefer-dist
-          working_directory: src/
-      - run: # configファイルをキャッシュ
-          name: create config cache
-          command: php artisan config:cache
-          working_directory: src/
-      - run:
-          name: build container # PHPコンテナをビルド
-          command: |
-            docker build --no-cache -t ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:$CIRCLE_SHA1 -t ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest --build-arg TZ=${TZ} -f ./infrastructure/php/Dockerfile .
-            docker build --no-cache -t ${AWS_ECR_ACCOUNT_URL}/sample-nginx:$CIRCLE_SHA1 -t ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest --build-arg TZ=${TZ} -f ./infrastructure/nginx/Dockerfile .
-      - run:
-          name: install aws cli # コマンドラインからAWSを操作するためにaws-cliをインストール
-          command: |
-            curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-            sudo python get-pip.py
-            sudo pip install awscli
-      - run:
-          name: push docker image # ECRにコンテナイメージをpush
-          command: |
-            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_ACCOUNT_URL}
-            docker push ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest
-            docker push ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest
+      - install_php_dependencies
+      - restore_dependencies_cache
+      - install_dependencies
+      - save_dependencies_cache
+      - prepare_env
+      - run_linter
+      - setup_database
+      - run_unit_test
+# jobs:
+#   test:
+#     docker:
+#       - image: circleci/php:7.3-node-browsers
+#       - image: circleci/mysql:5.7
+#     working_directory: ~/laravel_circleci_ecs
+#     steps:
+#       - checkout # ソースをgithubからworkdirにcheckoutする
+#       - run:
+#           name: DB Migration
+#           command: php artisan migrate && php artisan db:seed
+#           working_directory: src/
+#       - run:
+#           name: Run PHPUnit
+#           command: php artisan test
+#           working_directory: src/
 
-workflows:
-  version: 2
-  test:
-    jobs:
-      - test
-      - bulid_image_and_push:
-          requires:
-            - test
-          filters:
-            branches:
-              only: master
-      # - deploy:
-      #     requires:
-      #       - build_image
-      #     filters:
-      #       branches:
-      #         only: master
+#   bulid_image_and_push:
+#     docker:
+#       - image: circleci/php:7.3.9-fpm
+#     working_directory: ~/laravel_circleci_ecs
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - run:
+#           name: setup Laravel # envをproduction用のものに変更&権限設定 ln -s .env.production .env
+#           command: |
+#             sudo chmod -R 777 storage bootstrap/cache
+#           working_directory: src/
+#       - run:
+#           name: composer install
+#           command: composer install -n --prefer-dist
+#           working_directory: src/
+#       - run: # configファイルをキャッシュ
+#           name: create config cache
+#           command: php artisan config:cache
+#           working_directory: src/
+#       - run:
+#           name: build container # PHPコンテナをビルド
+#           command: |
+#             docker build --no-cache -t ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:$CIRCLE_SHA1 -t ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest --build-arg TZ=${TZ} -f ./infrastructure/php/Dockerfile .
+#             docker build --no-cache -t ${AWS_ECR_ACCOUNT_URL}/sample-nginx:$CIRCLE_SHA1 -t ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest --build-arg TZ=${TZ} -f ./infrastructure/nginx/Dockerfile .
+#       - run:
+#           name: install aws cli # コマンドラインからAWSを操作するためにaws-cliをインストール
+#           command: |
+#             curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+#             sudo python get-pip.py
+#             sudo pip install awscli
+#       - run:
+#           name: push docker image # ECRにコンテナイメージをpush
+#           command: |
+#             aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_ACCOUNT_URL}
+#             docker push ${AWS_ECR_ACCOUNT_URL}/sample-php-fpm:latest
+#             docker push ${AWS_ECR_ACCOUNT_URL}/sample-nginx:latest
+
+# workflows:
+#   version: 2
+#   test:
+#     jobs:
+#       - test
+#       - bulid_image_and_push:
+#           requires:
+#             - test
+#           filters:
+#             branches:
+#               only: master
+#       # - deploy:
+#       #     requires:
+#       #       - build_image
+#       #     filters:
+#       #       branches:
+#       #         only: master

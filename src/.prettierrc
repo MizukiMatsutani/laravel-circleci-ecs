@@ -1,0 +1,7 @@
+phpVersion: '7.3'
+printWidth: 120
+tabWidth: 4
+useTabs: false
+singleQuote: true
+trailingCommaPHP: true
+braceStyle: 'psr-2'
