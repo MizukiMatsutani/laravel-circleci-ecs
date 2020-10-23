@@ -159,6 +159,7 @@ jobs:
       - run_unit_test
 
 workflows:
+  version: 2
   test:
     jobs:
       - test
