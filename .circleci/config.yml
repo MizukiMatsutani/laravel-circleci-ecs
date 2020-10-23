@@ -157,6 +157,11 @@ jobs:
       - run_linter
       - setup_database
       - run_unit_test
+
+workflows:
+  test:
+    jobs:
+      - test
 # jobs:
 #   test:
 #     docker:
