@@ -138,11 +138,11 @@ commands:
           name: Run test
           working_directory: src
           command: |
-            phpdbg -qrr vendor/bin/phpunit --log-junit ~/phpunit/junit.xml --coverage-html ~/phpunit/coverage-report
+            phpdbg -qrr vendor/bin/phpunit --log-junit build/junit.xml --coverage-html build/coverage-report
       - store_test_results:
-          path: ~/phpunit
+          path: build/coverage-report
       - store_artifacts:
-          path: ~/phpunit
+          path: build/coverage-report
 
 jobs:
   test:
