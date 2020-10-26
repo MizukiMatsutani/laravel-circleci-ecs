@@ -67,8 +67,8 @@ commands:
             - v1-dependencies-
       - restore_cache:
           keys:
-            - node-v1-{{ checksum "src/package-lock.json" }}
-            - node-v1-
+            - yarn-package-{{ checksum "src/yarn.lock" }}
+            - yarn-package-
 
   install_dependencies:
     steps:
@@ -81,7 +81,7 @@ commands:
           name: Install nodejs dependencies
           working_directory: src/
           command: |
-            npm install
+            yarn install --frozen-lockfile
 
   save_dependencies_cache:
     steps:
@@ -90,9 +90,9 @@ commands:
           paths:
             - src/vendor
       - save_cache:
-          key: node-v1-{{ checksum "src/package-lock.json" }}
+          key: yarn-package-{{ checksum "src/yarn.lock" }}
           paths:
-            - src/node_modules
+            - ~/.cache/yarn
 
   prepare_env:
     steps:
