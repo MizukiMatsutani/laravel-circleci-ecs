@@ -30,7 +30,7 @@ executors:
           LOCALE: ja
           LANG: ja_JP.UTF-8
 
-command:
+commands:
   install_php_dependencies:
     steps:
       - run:
