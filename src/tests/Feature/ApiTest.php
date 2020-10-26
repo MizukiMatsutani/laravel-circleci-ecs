@@ -17,9 +17,8 @@ class ApiTest extends TestCase
     {
         $response = $this->json('get', '/api/test?param=bbb');
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'aaa' => 'bbb',
-            ]);
+        $response->assertStatus(200)->assertJson([
+            'aaa' => 'bbb',
+        ]);
     }
 }

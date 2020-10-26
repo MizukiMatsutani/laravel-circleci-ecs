@@ -20,6 +20,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('/test', function (Request $request) {
     return response()->json([
-        'aaa' => $request->input('param')
+        'aaa' => $request->input('param'),
     ]);
 });

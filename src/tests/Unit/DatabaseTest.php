@@ -15,11 +15,13 @@ class DatabaseTest extends TestCase
      */
     public function DBのテスト()
     {
-        User::create($data = [
-            'name' => 'テストユーザー',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
-        ]);
+        User::create(
+            $data = [
+                'name' => 'テストユーザー',
+                'email' => 'test@example.com',
+                'password' => bcrypt('password'),
+            ],
+        );
 
         $this->assertDatabaseHas('users', $data);
     }
