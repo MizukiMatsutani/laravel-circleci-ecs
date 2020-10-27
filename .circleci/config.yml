@@ -18,11 +18,11 @@ executors:
       region:
         description: aws region
         type: string
-        default: ${AWS_DEFAULT_REGION} # staging環境があるなら、デフォルトはstagingにすべき
+        default: "${AWS_DEFAULT_REGION}" # staging環境があるなら、デフォルトはstagingにすべき
       ecr_url:
         description: aws ecr url
         type: string
-        default: ${AWS_ECR_ACCOUNT_URL} # staging環境があるなら、デフォルトはstagingにすべき
+        default: "${AWS_ECR_ACCOUNT_URL}" # staging環境があるなら、デフォルトはstagingにすべき
     environment:
       AWS_REGION: <<parameters.region>>
       AWS_ECR_ACCOUNT_URL: <<parameters.ecr_url>>
@@ -205,15 +205,15 @@ jobs:
   prod-deploy:
     executor:
       name: deployer
-      region: ${AWS_DEFAULT_REGION}
-      ecr_url: ${AWS_ECR_ACCOUNT_URL}
-      app_env: prodution
+      region: "${AWS_DEFAULT_REGION}"
+      ecr_url: "${AWS_ECR_ACCOUNT_URL}"
+      app_env: "prodution"
     steps:
       - setup
       - restore_dependencies_cache
       - install_dependencies
       - build_and_push_image:
-          tag: master
+          tag: "master"
       - save_dependencies_cache
       # - deploy_to_ecs:
       #     cluster_name: web-cluster
