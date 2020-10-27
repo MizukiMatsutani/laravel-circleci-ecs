@@ -18,11 +18,11 @@ executors:
       region:
         description: aws region
         type: string
-        default: ap-northeast-1 # staging環境があるなら、デフォルトはstagingのものにすべき
+        default: $AWS_DEFAULT_REGION # staging環境があるなら、デフォルトはstagingのものにすべき
       ecr_url:
         description: aws ecr url
         type: string
-        default: "${AWS_ECR_ACCOUNT_URL}" # staging環境があるなら、デフォルトはstagingのものにすべき
+        default: $AWS_ECR_ACCOUNT_URL # staging環境があるなら、デフォルトはstagingのものにすべき
     environment:
       AWS_REGION: <<parameters.region>>
       AWS_ECR_ACCOUNT_URL: <<parameters.ecr_url>>
@@ -205,8 +205,8 @@ jobs:
   prod-deploy:
     executor:
       name: deployer
-      region: ap-northeast-1
-      ecr_url: ${AWS_ECR_ACCOUNT_URL}
+      region: $AWS_DEFAULT_REGION
+      ecr_url: $AWS_ECR_ACCOUNT_URL
       app_env: prodution
     steps:
       - setup
@@ -225,10 +225,10 @@ jobs:
       #     distribution_id: E6T49PXIQC3L
 
 workflows:
-  test:
-    jobs:
-      - test:
-          name: Testing
+  # test:
+  #   jobs:
+  #     - test:
+  #         name: Testing
   prod-deploy:
     jobs:
       - prod-deploy:
