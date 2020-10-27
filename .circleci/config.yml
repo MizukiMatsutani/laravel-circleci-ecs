@@ -205,7 +205,7 @@ jobs:
   prod-deploy:
     executor:
       name: deployer
-      region: $AWS_DEFAULT_REGION
+      region: AWS_DEFAULT_REGION
       ecr_url: $AWS_ECR_ACCOUNT_URL
       app_env: prodution
     steps:
