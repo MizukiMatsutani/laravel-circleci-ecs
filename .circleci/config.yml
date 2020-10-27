@@ -228,13 +228,11 @@ workflows:
   test:
     jobs:
       - test:
-          name: testing
+          name: Testing
   prod-deploy:
     jobs:
       - prod-deploy:
           name: Deploy to Production
-          requires:
-            - test
           filters:
             branches:
               only: master
