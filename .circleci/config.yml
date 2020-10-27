@@ -24,7 +24,7 @@ executors:
         type: string
         default: "${AWS_ECR_ACCOUNT_URL}" # staging環境があるなら、デフォルトはstagingのものにすべき
     environment:
-      AWS_REGION: ${AWS_DEFAULT_REGION}
+      AWS_REGION: <<parameters.region>>
       AWS_ECR_ACCOUNT_URL: <<parameters.ecr_url>>
       APP_ENV: <<parameters.app_env>>
   testing:
