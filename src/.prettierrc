@@ -1,7 +1,26 @@
-phpVersion: '7.3'
-printWidth: 120
-tabWidth: 4
-useTabs: false
-singleQuote: true
-trailingCommaPHP: true
-braceStyle: 'psr-2'
+{
+    "useTabs": false,
+    "singleQuote": true,
+    "overrides": [
+        {
+            "files": "*.php",
+            "options": {
+                "phpVersion": "7.4",
+                "printWidth": 80,
+                "tabWidth": 4,
+                "trailingCommaPHP": true,
+                "braceStyle": "psr-2"
+            }
+        },
+        {
+            "files": ["*.js"],
+            "options": {
+                "semi": false,
+                "printWidth": 80,
+                "tabWidth": 2,
+                "bracketSpacing": true,
+                "arrowParens": "avoid"
+            }
+        }
+    ]
+}
