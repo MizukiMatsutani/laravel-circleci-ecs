@@ -36,14 +36,24 @@ commands:
     steps:
       - checkout
       - setup_remote_docker
+      - restore_cache:
+          keys:
+            - composer-{{ .Branch }}-{{ checksum "src/.env.${APP_ENV}.example" }}
+            - composer-{{ .Branch }}-
       - run:
-          name: setup Laravel # envをproduction用のものに変更&権限設定 ln -s .env.production .env
+          name: make env
+          command: |
+            cp -ip .env.${APP_ENV}.example .env
+            php artisan key:generate
+          working_directory: src/
+      - save_cache:
+          key: composer-{{ .Branch }}-{{ checksum "src/.env.${APP_ENV}.example" }}
+          paths:
+            - src/.env
+      - run:
+          name: setup Laravel
           command: |
             sudo chmod -R 777 storage bootstrap/cache
-          working_directory: src/
-      - run:
-          name: composer install
-          command: composer install -n --prefer-dist --no-dev
           working_directory: src/
       # - run: # configファイルをキャッシュ
       #     name: create config cache
@@ -113,18 +123,31 @@ commands:
             - yarn-package-{{ .Branch }}-{{ checksum "src/yarn.lock" }}
             - yarn-package-{{ .Branch }}-
 
-  install_dependencies:
+  install_dependencies_for_testing:
     steps:
       - run:
-          name: Install php dependencies
+          name: Install php dependencies for testing
           working_directory: src/
           command: |
             composer install -n --prefer-dist --ignore-platform-reqs
       - run:
-          name: Install nodejs dependencies
+          name: Install nodejs dependencies for testing
           working_directory: src/
           command: |
             yarn install --frozen-lockfile
+
+  install_dependencies_for_deploy:
+    steps:
+      - run:
+          name: Install php dependencies for deploy
+          working_directory: src/
+          command: |
+            composer install -n --prefer-dist --no-dev
+      - run:
+          name: Install nodejs dependencies for deploy
+          working_directory: src/
+          command: |
+            yarn install --frozen-lockfile --prod
 
   save_dependencies_cache:
     steps:
@@ -194,7 +217,7 @@ jobs:
       - checkout
       - install_php_dependencies
       - restore_dependencies_cache
-      - install_dependencies
+      - install_dependencies_for_testing
       - save_dependencies_cache
       - prepare_env
       - run_linter
@@ -208,7 +231,7 @@ jobs:
     steps:
       - setup
       - restore_dependencies_cache
-      - install_dependencies
+      - install_dependencies_for_deploy
       - build_and_push_image:
           tag: master
           docker-file: infrastructure/php/Dockerfile
