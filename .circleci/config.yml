@@ -10,13 +10,13 @@ executors:
     working_directory: ~/laravel_circleci_ecs
     docker:
       - image: circleci/php:7.3-stretch-node
-    parameters:
-      app_env:
-        type: enum
-        enum: ["staging", "prodution"]
-        default: staging
-    environment:
-      APP_ENV: <<parameters.app_env>>
+    # parameters:
+    #   app_env:
+    #     type: enum
+    #     enum: ["staging", "prodution"]
+    #     default: staging
+    # environment:
+    #   APP_ENV: <<parameters.app_env>>
   testing:
     working_directory: ~/laravel_circleci_ecs
     docker:
@@ -33,6 +33,11 @@ executors:
 
 commands:
   setup:
+    parameters:
+      app_env:
+        type: enum
+        enum: ["staging", "production"]
+        default: staging
     steps:
       - checkout
       - setup_remote_docker
@@ -227,9 +232,9 @@ jobs:
   prod-deploy:
     executor:
       name: deployer
-      app_env: prodution
     steps:
-      - setup
+      - setup:
+          app_env: production
       - restore_dependencies_cache
       - install_dependencies_for_deploy
       - build_and_push_image:
