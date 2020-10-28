@@ -215,7 +215,7 @@ jobs:
       app_env: prodution
     steps:
       - setup:
-          region: AWS_DEFAULT_REGION
+          region: "${AWS_DEFAULT_REGION}"
       - restore_dependencies_cache
       - install_dependencies
       - build_and_push_image:
