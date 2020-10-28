@@ -15,16 +15,16 @@ executors:
         type: enum
         enum: ["staging", "prodution"]
         default: "staging"
-      region:
-        description: aws region
-        type: string
-        default: $AWS_DEFAULT_REGION # staging環境があるなら、デフォルトはstagingのものにすべき
+      # region:
+      #   description: aws region
+      #   type: string
+      #   default: $AWS_DEFAULT_REGION # staging環境があるなら、デフォルトはstagingのものにすべき
       ecr_url:
         description: aws ecr url
         type: string
         default: $AWS_ECR_ACCOUNT_URL # staging環境があるなら、デフォルトはstagingのものにすべき
     environment:
-      AWS_REGION: <<parameters.region>>
+      AWS_REGION: $AWS_DEFAULT_REGION #<<parameters.region>>
       AWS_ECR_ACCOUNT_URL: <<parameters.ecr_url>>
       APP_ENV: <<parameters.app_env>>
   testing:
