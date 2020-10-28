@@ -43,11 +43,16 @@ executors:
 
 commands:
   setup:
+    parameters:
+      region:
+        description: aws region
+        type: string
+        default: ${AWS_DEFAULT_REGION} # staging環境があるなら、デフォルトはstagingのものにすべき
     steps:
       - checkout
       - setup_remote_docker
       - aws-cli/setup:
-          aws-region: AWS_REGION
+          aws-region: <<parameters.region>>
       - aws-ecr/ecr-login
 
   build_and_push_image:
@@ -209,7 +214,8 @@ jobs:
       # ecr_url: $AWS_ECR_ACCOUNT_URL
       app_env: prodution
     steps:
-      - setup
+      - setup:
+          region: $AWS_DEFAULT_REGION
       - restore_dependencies_cache
       - install_dependencies
       - build_and_push_image:
