@@ -129,11 +129,11 @@ commands:
   save_dependencies_cache:
     steps:
       - save_cache:
-          key: composer-{{ APP_ENV }}-{{ checksum "src/composer.lock" }}
+          key: composer-${APP_ENV}-{{ checksum "src/composer.lock" }}
           paths:
             - src/vendor
       - save_cache:
-          key: yarn-package-{{ APP_ENV }}-{{ checksum "src/yarn.lock" }}
+          key: yarn-package-{{ .Environment.APP_ENV }}-{{ checksum "src/yarn.lock" }}
           paths:
             - ~/.cache/yarn
 
