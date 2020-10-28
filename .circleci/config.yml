@@ -54,12 +54,29 @@ commands:
       # - aws-cli/setup:
       #     aws-region: <<parameters.region>>
       # - aws-ecr/ecr-login
+      - run:
+          name: setup Laravel # envをproduction用のものに変更&権限設定 ln -s .env.production .env
+          command: |
+            sudo chmod -R 777 storage bootstrap/cache
+          working_directory: src/
+      - run:
+          name: composer install
+          command: composer install -n --prefer-dist --no-dev
+          working_directory: src/
+      - run: # configファイルをキャッシュ
+          name: create config cache
+          command: php artisan config:cache
+          working_directory: src/
 
   build_and_push_image:
     parameters:
       tag:
         type: enum
         enum: ["staging", "master"]
+      docker-file:
+        type: string
+      repo-name:
+        type: string
     steps:
       - aws-ecr/build-and-push-image:
           account-url: AWS_ECR_ACCOUNT_URL
@@ -67,11 +84,11 @@ commands:
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
           create-repo: false
           path: .
-          dockerfile: infrastructure/php/Dockerfile
-          extra-build-args: "--build-arg TZ=${TZ}"
+          dockerfile: <<parameters.docker-file>>
+          extra-build-args: "--build-arg COMMIT=$CIRCLE_SHA1 --build-arg=BRANCH=$CIRCLE_BRANCH --build-arg TZ=${TZ}"
           no-output-timeout: 20m
           region: AWS_DEFAULT_REGION
-          repo: sample-php-fpm
+          repo: <<parameters.repo-name>>
           skip-when-tags-exist: false
           tag: "latest,<< parameters.tag >>"
       # - aws-ecr/build-image:
@@ -232,6 +249,12 @@ jobs:
       - install_dependencies
       - build_and_push_image:
           tag: master
+          docker-file: infrastructure/php/Dockerfile
+          repo-name: sample-php-fpm
+      - build_and_push_image:
+          tag: master
+          docker-file: infrastructure/nginx/Dockerfile
+          repo-name: sample-nginx
       - save_dependencies_cache
       # - deploy_to_ecs:
       #     cluster_name: web-cluster
