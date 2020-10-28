@@ -42,8 +42,7 @@ RUN docker-php-ext-configure \
     gd
 
 RUN composer config -g process-timeout 3600 \
-    && composer config -g repos.packagist composer https://packagist.org \
-    && composer global require hirak/prestissimo
+    && composer config -g repos.packagist composer https://packagist.org
 
 COPY ./src /work
 COPY ./infrastructure/php/php-fpm.d/zzz-www.conf /usr/local/etc/php-fpm.d/zzz-www.conf
