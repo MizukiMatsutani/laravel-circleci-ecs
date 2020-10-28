@@ -14,7 +14,7 @@ executors:
       app_env:
         type: enum
         enum: ["staging", "prodution"]
-        default: "staging"
+        default: staging
     environment:
       APP_ENV: <<parameters.app_env>>
   testing:
@@ -45,10 +45,10 @@ commands:
           name: composer install
           command: composer install -n --prefer-dist --no-dev
           working_directory: src/
-      - run: # configファイルをキャッシュ
-          name: create config cache
-          command: php artisan config:cache
-          working_directory: src/
+      # - run: # configファイルをキャッシュ
+      #     name: create config cache
+      #     command: php artisan config:cache
+      #     working_directory: src/
 
   build_and_push_image:
     parameters:
@@ -106,12 +106,12 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - composer-{{ .Environment.APP_ENV }}-{{ checksum "src/composer.lock" }}
-            - composer-{{ .Environment.APP_ENV }}-
+            - composer-{{ .Branch }}-{{ checksum "src/composer.lock" }}
+            - composer-{{ .Branch }}-
       - restore_cache:
           keys:
-            - yarn-package-{{ .Environment.APP_ENV }}-{{ checksum "src/yarn.lock" }}
-            - yarn-package-{{ .Environment.APP_ENV }}-
+            - yarn-package-{{ .Branch }}-{{ checksum "src/yarn.lock" }}
+            - yarn-package-{{ .Branch }}-
 
   install_dependencies:
     steps:
@@ -129,11 +129,11 @@ commands:
   save_dependencies_cache:
     steps:
       - save_cache:
-          key: composer-${APP_ENV}-{{ checksum "src/composer.lock" }}
+          key: composer-{{ .Branch }}-{{ checksum "src/composer.lock" }}
           paths:
             - src/vendor
       - save_cache:
-          key: yarn-package-{{ .Environment.APP_ENV }}-{{ checksum "src/yarn.lock" }}
+          key: yarn-package-{{ .Branch }}-{{ checksum "src/yarn.lock" }}
           paths:
             - ~/.cache/yarn
 
