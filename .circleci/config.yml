@@ -87,14 +87,12 @@ commands:
           account-url: AWS_ECR_ACCOUNT_URL
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          create-repo: false
           path: .
           dockerfile: <<parameters.docker-file>>
           extra-build-args: "--build-arg TZ=${TZ}"
           no-output-timeout: 20m
           region: AWS_DEFAULT_REGION
           repo: <<parameters.repo-name>>
-          skip-when-tags-exist: false
           tag: "base,latest,<< parameters.tag >>"
 
   build_and_push_image:
@@ -120,7 +118,6 @@ commands:
           no-output-timeout: 20m
           region: AWS_DEFAULT_REGION
           repo: <<parameters.repo-name>>
-          skip-when-tags-exist: false
           tag: "latest,<< parameters.tag >>"
 
   install_php_dependencies:
