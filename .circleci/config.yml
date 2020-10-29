@@ -63,10 +63,10 @@ commands:
           command: |
             sudo chmod -R 777 storage bootstrap/cache
           working_directory: src/
-      # - run: # configファイルをキャッシュ
-      #     name: create config cache
-      #     command: php artisan config:cache
-      #     working_directory: src/
+      - run:
+          name: create config cache
+          command: php artisan config:cache
+          working_directory: src/
 
   build_and_push_image:
     parameters:
@@ -237,9 +237,6 @@ jobs:
     steps:
       - setup:
           app_env: production
-      # - restore_dependencies_cache
-      # - install_dependencies_for_deploy
-      # - save_dependencies_cache
       - build_and_push_image:
           tag: master
           docker-file: infrastructure/php/Dockerfile
