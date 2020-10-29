@@ -119,7 +119,7 @@ commands:
           cluster-name: << parameters.cluster_name >>
           service-name: << parameters.service_name >>
           container-image-name-updates: "container=<< parameters.container_name >>,tag=${CIRCLE_SHA1}"
-          verify-revision-is-deployed: true
+          #verify-revision-is-deployed: true
 
   install_php_dependencies:
     steps:
