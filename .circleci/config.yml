@@ -45,16 +45,18 @@ commands:
       - install_dependencies_for_deploy
       - save_dependencies_cache
       - restore_cache:
+          name: Restoring Cache - laravel env
           keys:
             - laravel-env-{{ .Branch }}-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
             - laravel-env-{{ .Branch }}-
       - run:
-          name: make env
+          name: make env & key generate
           command: |
             cp -ip .env.<<parameters.app_env>>.example .env
             php artisan key:generate
           working_directory: src/
       - save_cache:
+          name: Saving Cache - laravel env
           key: laravel-env-{{ .Branch }}-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
           paths:
             - src/.env
@@ -63,7 +65,7 @@ commands:
           command: |
             sudo chmod -R 777 storage bootstrap/cache
           working_directory: src/
-      - run:
+      - run: # なぜかこれすると ecs上で、production.ERROR: file_put_contents(/home/circleci/laravel_circleci_ecs/src/storage/framework/views/6292860ceca8784755736d74d4b38da3080024bf.php): failed to open stream: No such file or directory
           name: create config cache
           command: php artisan config:cache
           working_directory: src/
@@ -123,10 +125,12 @@ commands:
   restore_dependencies_cache:
     steps:
       - restore_cache:
+          name: Restoring Cache - composer package
           keys:
             - composer-{{ .Branch }}-{{ checksum "src/composer.lock" }}
             - composer-{{ .Branch }}-
       - restore_cache:
+          name: Restoring Cache - yarn package
           keys:
             - yarn-package-{{ .Branch }}-{{ checksum "src/yarn.lock" }}
             - yarn-package-{{ .Branch }}-
@@ -160,10 +164,12 @@ commands:
   save_dependencies_cache:
     steps:
       - save_cache:
+          name: Saving Cache - composer package
           key: composer-{{ .Branch }}-{{ checksum "src/composer.lock" }}
           paths:
             - src/vendor
       - save_cache:
+          name: Saving Cache - yarn package
           key: yarn-package-{{ .Branch }}-{{ checksum "src/yarn.lock" }}
           paths:
             - ~/.cache/yarn
