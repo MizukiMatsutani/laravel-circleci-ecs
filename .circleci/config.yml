@@ -60,18 +60,6 @@ commands:
           key: laravel-env-{{ .Branch }}-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
           paths:
             - src/.env
-      - run:
-          name: Setup Laravel
-          command: |
-            sudo chmod -R 777 storage bootstrap/cache
-          working_directory: src/
-      # - run: # なぜかこれすると ecs上で、production.ERROR: file_put_contents(/home/circleci/laravel_circleci_ecs/src/storage/framework/views/6292860ceca8784755736d74d4b38da3080024bf.php): failed to open stream: No such file or directory
-      #     name: create config cache
-      #     # laravelのconfig:cache時のパス情報がズレるためAPP_BASE_PATHを指定
-      #     command: |
-      #       export APP_BASE_PATH=/work
-      #       php artisan config:cache
-      #     working_directory: src/
 
   build_base_image:
     parameters:
@@ -119,7 +107,29 @@ commands:
           no-output-timeout: 20m
           region: AWS_DEFAULT_REGION
           repo: <<parameters.repo-name>>
-          tag: "latest,<< parameters.tag >>"
+          tag: "latest,<< parameters.tag >>,${CIRCLE_SHA1}"
+
+  deploy_to_ecs:
+    parameters:
+      cluster_name:
+        type: enum
+        enum: ["sample-staging-cluster", "sample-cluster"]
+      service_name:
+        type: enum
+        enum: ["sample-staging-service", "sample-service"]
+      task_name:
+        type: enum
+        enum: ["sample-staging-task", "sample-task"]
+      container_name:
+        type: enum
+        enum: ["web", "app"]
+    steps:
+      - aws-ecs/update-service:
+          family: << parameters.task_name >>
+          cluster-name: << parameters.cluster_name >>
+          service-name: << parameters.service_name >>
+          container-image-name-updates: "container=<< parameters.container_name >>,tag=${CIRCLE_SHA1}"
+          #verify-revision-is-deployed: true
 
   install_php_dependencies:
     steps:
@@ -283,12 +293,16 @@ jobs:
           tag: master
           docker-file: infrastructure/nginx/Dockerfile
           repo-name: sample-nginx
-      # - deploy_to_ecs:
-      #     cluster_name: web-cluster
-      #     service_name: web-service2
-      #     task_name: web
-      #     container_name: web
-      #     image_name: web
+      - deploy_to_ecs:
+          cluster_name: sample-cluster
+          service_name: sample-service
+          task_name: sample-task
+          container_name: app
+      - deploy_to_ecs:
+          cluster_name: sample-cluster
+          service_name: sample-service
+          task_name: sample-task
+          container_name: web
       # - clear_cloudfront_cache:
       #     distribution_id: E6T49PXIQC3L
 

@@ -6,6 +6,7 @@ ARG DOCKER_ENV
 
 COPY ./src /work
 
-RUN php artisan config:cache
+RUN php artisan config:cache && \
+    chmod -R 777 storage bootstrap/cache
 
 WORKDIR /work
