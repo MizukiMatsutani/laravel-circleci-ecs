@@ -73,7 +73,7 @@ commands:
       #       php artisan config:cache
       #     working_directory: src/
 
-  build_and_push_image:
+  build_base_image:
     parameters:
       tag:
         type: enum
@@ -83,6 +83,32 @@ commands:
       repo-name:
         type: string
     steps:
+      - aws-ecr/build-image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          create-repo: false
+          path: .
+          dockerfile: <<parameters.docker-file>>
+          extra-build-args: "--build-arg TZ=${TZ}"
+          no-output-timeout: 20m
+          region: AWS_DEFAULT_REGION
+          repo: <<parameters.repo-name>>
+          skip-when-tags-exist: false
+          tag: "base,latest,<< parameters.tag >>"
+
+  build_and_push_image:
+    parameters:
+      tag:
+        type: enum
+        enum: ["staging", "master"]
+      docker-file:
+        type: string
+      repo-name:
+        type: string
+      build-from:
+        type: string
+    steps:
       - aws-ecr/build-and-push-image:
           account-url: AWS_ECR_ACCOUNT_URL
           aws-access-key-id: AWS_ACCESS_KEY_ID
@@ -90,7 +116,7 @@ commands:
           create-repo: false
           path: .
           dockerfile: <<parameters.docker-file>>
-          extra-build-args: "--build-arg COMMIT=$CIRCLE_SHA1 --build-arg=BRANCH=$CIRCLE_BRANCH --build-arg TZ=${TZ}"
+          extra-build-args: "--build-arg BUILD_FROM=<< parameters.build-from >> --build-arg TZ=${TZ}"
           no-output-timeout: 20m
           region: AWS_DEFAULT_REGION
           repo: <<parameters.repo-name>>
@@ -246,10 +272,15 @@ jobs:
     steps:
       - setup:
           app_env: production
-      - build_and_push_image:
+      - build_base_image:
           tag: master
           docker-file: infrastructure/php/Dockerfile
+          repo-name: sample-base-php-fpm
+      - build_and_push_image:
+          tag: master
+          docker-file: infrastructure/php/DockerfileECS
           repo-name: sample-php-fpm
+          build-from: ${AWS_ECR_ACCOUNT_URL}/sample-base-php-fpm:latest
       - build_and_push_image:
           tag: master
           docker-file: infrastructure/nginx/Dockerfile

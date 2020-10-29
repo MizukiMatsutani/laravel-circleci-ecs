@@ -1,0 +1,11 @@
+ARG BUILD_FROM
+
+FROM ${BUILD_FROM}
+
+ARG DOCKER_ENV
+
+COPY ./src /work
+
+RUN php artisan config:cache
+
+WORKDIR /work
