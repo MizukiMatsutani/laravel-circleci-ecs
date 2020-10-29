@@ -43,8 +43,8 @@ commands:
       - setup_remote_docker
       - restore_cache:
           keys:
-            - composer-{{ .Branch }}-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
-            - composer-{{ .Branch }}-
+            - laravel-env-{{ .Branch }}-<<parameters.app_env>>-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
+            - laravel-env-{{ .Branch }}-<<parameters.app_env>>-
       - run:
           name: make env
           command: |
@@ -52,7 +52,7 @@ commands:
             php artisan key:generate
           working_directory: src/
       - save_cache:
-          key: composer-{{ .Branch }}-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
+          key: laravel-env-{{ .Branch }}-<<parameters.app_env>>-{{ checksum "src/.env.<<parameters.app_env>>.example" }}
           paths:
             - src/.env
       - run:
