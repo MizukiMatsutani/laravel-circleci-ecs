@@ -112,14 +112,14 @@ commands:
         enum: ["sample-staging-task", "sample-task"]
       container_name:
         type: enum
-        enum: ["web", "app"]
+        enum: ["app"]
     steps:
       - aws-ecs/update-service:
           family: << parameters.task_name >>
           cluster-name: << parameters.cluster_name >>
           service-name: << parameters.service_name >>
           container-image-name-updates: "container=<< parameters.container_name >>,tag=${CIRCLE_SHA1}"
-          #verify-revision-is-deployed: true
+          verify-revision-is-deployed: true
 
   install_php_dependencies:
     steps:
