@@ -61,17 +61,17 @@ commands:
           paths:
             - src/.env
       - run:
-          name: setup Laravel
+          name: Setup Laravel
           command: |
             sudo chmod -R 777 storage bootstrap/cache
           working_directory: src/
-      - run: # なぜかこれすると ecs上で、production.ERROR: file_put_contents(/home/circleci/laravel_circleci_ecs/src/storage/framework/views/6292860ceca8784755736d74d4b38da3080024bf.php): failed to open stream: No such file or directory
-          name: create config cache
-          # laravelのconfig:cache時のパス情報がズレるためAPP_BASE_PATHを指定
-          command: |
-            export APP_BASE_PATH=/work 
-            php artisan config:cache
-          working_directory: src/
+      # - run: # なぜかこれすると ecs上で、production.ERROR: file_put_contents(/home/circleci/laravel_circleci_ecs/src/storage/framework/views/6292860ceca8784755736d74d4b38da3080024bf.php): failed to open stream: No such file or directory
+      #     name: create config cache
+      #     # laravelのconfig:cache時のパス情報がズレるためAPP_BASE_PATHを指定
+      #     command: |
+      #       export APP_BASE_PATH=/work
+      #       php artisan config:cache
+      #     working_directory: src/
 
   build_and_push_image:
     parameters:

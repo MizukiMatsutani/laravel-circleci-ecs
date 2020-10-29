@@ -48,4 +48,6 @@ COPY ./src /work
 COPY ./infrastructure/php/php-fpm.d/zzz-www.conf /usr/local/etc/php-fpm.d/zzz-www.conf
 COPY ./infrastructure/php/php.ini /usr/local/etc/php/php.ini
 
+RUN php artisan config:cache
+
 WORKDIR /work
