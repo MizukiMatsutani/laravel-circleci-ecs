@@ -17,6 +17,9 @@ executors:
     #     default: staging
     # environment:
     #   APP_ENV: <<parameters.app_env>>
+    environment:
+      # laravelのconfig:cache時のパス情報がズレるため指定
+      APP_BASE_PATH: /work
   testing:
     working_directory: ~/laravel_circleci_ecs
     docker:
