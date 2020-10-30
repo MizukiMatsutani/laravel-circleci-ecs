@@ -288,12 +288,6 @@ jobs:
       #     service_name: sample-service
       #     task_name: sample-task
       #     container_name: app
-      - aws-ecs/deploy-service-update:
-          family: sample-task
-          cluster-name: sample-cluster
-          service-name: sample-service
-          container-image-name-updates: "container=app,tag=${CIRCLE_SHA1}"
-          # verify-revision-is-deployed: true
       # - clear_cloudfront_cache:
       #     distribution_id: E6T49PXIQC3L
 
@@ -309,6 +303,14 @@ workflows:
           filters:
             branches:
               only: master
+      - aws-ecs/deploy-service-update:
+          name: ecs deploy-service-update
+          family: sample-task
+          cluster-name: sample-cluster
+          service-name: sample-service
+          container-image-name-updates: "container=app,tag=${CIRCLE_SHA1}"
+          requires:
+            - prod-deploy
 # jobs:
 #   test:
 #     docker:
