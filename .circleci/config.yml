@@ -120,6 +120,8 @@ commands:
           service-name: << parameters.service_name >>
           container-image-name-updates: "container=<< parameters.container_name >>,tag=${CIRCLE_SHA1}"
           verify-revision-is-deployed: true
+          max-poll-attempts: 300
+          poll-interval: 10
 
   install_php_dependencies:
     steps:
