@@ -99,27 +99,27 @@ commands:
           repo: <<parameters.repo-name>>
           tag: "latest-<< parameters.tag >>,${CIRCLE_SHA1}"
 
-  deploy_to_ecs:
-    parameters:
-      cluster_name:
-        type: enum
-        enum: ["sample-staging-cluster", "sample-cluster"]
-      service_name:
-        type: enum
-        enum: ["sample-staging-service", "sample-service"]
-      task_name:
-        type: enum
-        enum: ["sample-staging-task", "sample-task"]
-      container_name:
-        type: enum
-        enum: ["app"]
-    steps:
-      - aws-ecs/update-service:
-          family: << parameters.task_name >>
-          cluster-name: << parameters.cluster_name >>
-          service-name: << parameters.service_name >>
-          container-image-name-updates: "container=<< parameters.container_name >>,tag=${CIRCLE_SHA1}"
-          verify-revision-is-deployed: true
+  # deploy_to_ecs:
+  #   parameters:
+  #     cluster_name:
+  #       type: enum
+  #       enum: ["sample-staging-cluster", "sample-cluster"]
+  #     service_name:
+  #       type: enum
+  #       enum: ["sample-staging-service", "sample-service"]
+  #     task_name:
+  #       type: enum
+  #       enum: ["sample-staging-task", "sample-task"]
+  #     container_name:
+  #       type: enum
+  #       enum: ["app"]
+  #   steps:
+  #     - aws-ecs/update-service:
+  #         family: << parameters.task_name >>
+  #         cluster-name: << parameters.cluster_name >>
+  #         service-name: << parameters.service_name >>
+  #         container-image-name-updates: "container=<< parameters.container_name >>,tag=${CIRCLE_SHA1}"
+  #         # verify-revision-is-deployed: true
 
   install_php_dependencies:
     steps:
@@ -283,11 +283,17 @@ jobs:
           tag: master
           docker-file: infrastructure/nginx/Dockerfile
           repo-name: sample-nginx
-      - deploy_to_ecs:
-          cluster_name: sample-cluster
-          service_name: sample-service
-          task_name: sample-task
-          container_name: app
+      # - deploy_to_ecs:
+      #     cluster_name: sample-cluster
+      #     service_name: sample-service
+      #     task_name: sample-task
+      #     container_name: app
+      - aws-ecs/update-service:
+          family: sample-task
+          cluster-name: sample-cluster
+          service-name: sample-service
+          container-image-name-updates: "container=app,tag=${CIRCLE_SHA1}"
+          # verify-revision-is-deployed: true
       # - clear_cloudfront_cache:
       #     distribution_id: E6T49PXIQC3L
 
