@@ -309,8 +309,6 @@ workflows:
           cluster-name: sample-cluster
           service-name: sample-service
           container-image-name-updates: "container=app,tag=${CIRCLE_SHA1}"
-          requires:
-            - prod-deploy
 # jobs:
 #   test:
 #     docker:
