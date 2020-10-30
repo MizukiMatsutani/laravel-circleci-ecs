@@ -288,7 +288,7 @@ jobs:
       #     service_name: sample-service
       #     task_name: sample-task
       #     container_name: app
-      - aws-ecs/update-service:
+      - aws-ecs/deploy-service-update:
           family: sample-task
           cluster-name: sample-cluster
           service-name: sample-service
