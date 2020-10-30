@@ -114,7 +114,7 @@ commands:
         type: enum
         enum: ["app"]
     steps:
-      - aws-ecs/update-service:
+      - aws-ecs/deploy-service-update:
           family: << parameters.task_name >>
           cluster-name: << parameters.cluster_name >>
           service-name: << parameters.service_name >>
