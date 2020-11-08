@@ -252,8 +252,8 @@ resource "aws_ecs_service" "this" {
 
   desired_count                     = 2      # 必要数
   health_check_grace_period_seconds = "7200" # コンテナの立ち上げ猶予時間
-  # deployment_maximum_percent         = 100    # 最大2台の意味（必要数 * 100%）
-  # deployment_minimum_healthy_percent = 100    # 最低2台の意味（必要数 * 100%）
+  deployment_maximum_percent         = 200    # 最大4台の意味（必要数 * 200%）
+  deployment_minimum_healthy_percent = 100    # 最低2台の意味（必要数 * 100%）
 
   cluster = aws_ecs_cluster.this.name
 

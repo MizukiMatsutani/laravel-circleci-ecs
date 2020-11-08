@@ -1,7 +1,7 @@
 # https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_environment
 - name: app
   image: ${app_repo_url}:${tag}
-  cpu: 1
+  cpu: 10
   memory: 512
   essential: true
   workingDirectory: /work
@@ -31,7 +31,7 @@
 
 - name: nginx
   image: ${nginx_repo_url}:${tag}
-  cpu: 1
+  cpu: 10
   memory: 256
   essential: true
   portMappings:

@@ -72,7 +72,7 @@ resource "aws_security_group_rule" "http" {
 # https://www.terraform.io/docs/providers/aws/d/lb.html
 resource "aws_lb" "this" {
   load_balancer_type = "application"
-  name               = var.name
+  name               = "${var.name}-lb"
 
   security_groups = [aws_security_group.this.id]
   subnets         = flatten(var.public_subnet_ids)
