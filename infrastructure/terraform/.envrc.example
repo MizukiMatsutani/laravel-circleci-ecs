@@ -1,0 +1,3 @@
+export TF_VAR_rds_master_username=xxxxxxxxx
+export TF_VAR_rds_master_password=xxxxxxxxx
+export TF_VAR_rds_database_name=xxxxxxxxx

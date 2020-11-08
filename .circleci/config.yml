@@ -109,7 +109,7 @@ commands:
         enum: ["sample-staging-service", "sample-service"]
       task_name:
         type: enum
-        enum: ["sample-staging-task", "sample-task"]
+        enum: ["sample-staging-task", "sample-laravel"]
       container_name:
         type: enum
         enum: ["app"]
@@ -279,16 +279,16 @@ jobs:
       - build_and_push_image:
           tag: master
           docker-file: infrastructure/php/DockerfileECS
-          repo-name: sample-php-fpm
+          repo-name: app #sample-php-fpm
           build-from: ${AWS_ECR_ACCOUNT_URL}/sample-base-php-fpm:${CIRCLE_SHA1}
       - build_and_push_image:
           tag: master
           docker-file: infrastructure/nginx/Dockerfile
-          repo-name: sample-nginx
+          repo-name: nginx #sample-nginx
       - deploy_to_ecs:
           cluster_name: sample-cluster
           service_name: sample-service
-          task_name: sample-task
+          task_name: sample-laravel
           container_name: app
       # - clear_cloudfront_cache:
       #     distribution_id: E6T49PXIQC3L

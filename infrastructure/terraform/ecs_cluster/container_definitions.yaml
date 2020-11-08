@@ -1,0 +1,55 @@
+# https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_environment
+- name: app
+  image: ${app_repo_url}:${tag}
+  cpu: 1
+  memory: 512
+  essential: true
+  workingDirectory: /work
+  environment:
+    - name: APP_ENV
+      value: production
+    - name: LOG_CHANNEL
+      value: stack
+    - name: DB_DATABASE
+      value: ${db_database}
+    - name: DB_HOST
+      value: ${db_host}
+    - name: DB_PASSWORD
+      value: ${db_password}
+    - name: DB_USERNAME
+      value: ${db_username}
+  logConfiguration:
+    logDriver: awslogs
+    options:
+      awslogs-group: ${awslog_group}
+      awslogs-region: ${region}
+      awslogs-datetime-format: "%Y-%m-%d %H:%M:%S"
+      awslogs-stream-prefix: ecs
+  mountPoints:
+    - sourceVolume: php-socket
+      containerPath: /var/run/php-fpm
+
+- name: nginx
+  image: ${nginx_repo_url}:${tag}
+  cpu: 1
+  memory: 256
+  essential: true
+  portMappings:
+    - containerPort: 80
+      hostPort: 80
+  workingDirectory: /work
+  environment:
+    - name: APP_ENV
+      value: production
+    - name: LOG_CHANNEL
+      value: stack
+  logConfiguration:
+    logDriver: awslogs
+    options:
+      awslogs-group: ${awslog_group}
+      awslogs-region: ${region}
+      awslogs-datetime-format: "%Y-%m-%d %H:%M:%S"
+      awslogs-stream-prefix: ecs
+  mountPoints:
+    - sourceVolume: php-socket
+      containerPath: /var/run/php-fpm
