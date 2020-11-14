@@ -59,12 +59,12 @@ data "template_file" "container_definitions" {
   template = jsonencode(yamldecode(file("./ecs_cluster/container_definitions.yaml")))
 
   vars = {
-    tag = "latest"
+    tag = "latest-master" # TODO workspaceをつかって、環境ごとのtagを取るようにしたほうがいい？
 
     account_id   = local.account_id
     region       = local.region
     name         = local.name
-    awslog_group = "/ecs/${local.name}"
+    awslog_group = "/${local.name}/ecs"
 
     app_repo_url   = aws_ecr_repository.app.repository_url
     nginx_repo_url = aws_ecr_repository.nginx.repository_url
@@ -105,7 +105,7 @@ resource "aws_ecs_task_definition" "this" {
 # ClundWatch log group
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group
 resource "aws_cloudwatch_log_group" "this" {
-  name              = "/${var.name}/ecs"
+  name              = "/${local.name}/ecs"
   retention_in_days = "7"
 }
 
