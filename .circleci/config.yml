@@ -272,7 +272,7 @@ jobs:
           template: basic_fail_1
       - slack/notify:
           event: pass
-          custom: |
+          custom: |-
             {
               "text": "",
               "blocks": [
